@@ -1,0 +1,59 @@
+#version 400
+
+layout(vertices = 4) out;
+in vec2 TexCoord[];  
+out vec2 TexCoordOut[];
+uniform float wCamY;
+uniform float wCamZ;
+uniform sampler2D wHeightMap;
+
+void main()
+{
+gl_out[gl_InvocationID].gl_Position
+= gl_in[gl_InvocationID].gl_Position;
+
+
+vec3 patch_coord = abs(gl_in[gl_InvocationID].gl_Position.xyz + gl_in[gl_InvocationID + 1].gl_Position.xyz + gl_in[gl_InvocationID + 2].gl_Position.xyz + gl_in[gl_InvocationID + 3].gl_Position.xyz)/4;
+
+
+int dmin = 5;
+int dmax = 50;
+int lhigh = 50;
+int llow = 5;
+int isFlat = 1;
+
+float d = distance(vec3(0,wCamY, wCamZ), patch_coord);
+
+
+float heightA[4];
+heightA[0] = texture(wHeightMap, TexCoord[0]).r;
+heightA[1] = texture(wHeightMap, TexCoord[1]).r;
+heightA[2] = texture(wHeightMap, TexCoord[2]).r;
+heightA[3] = texture(wHeightMap, TexCoord[3]).r;
+
+
+
+for(int i=0; i<4; i++)
+	{
+		
+	if(heightA[i] >= 0.20){
+		isFlat = 0;
+	}
+}
+
+
+
+int level = clamp(int(((d - dmin)/(dmax-dmin))*(llow - lhigh) + lhigh), llow, lhigh);
+if(isFlat == 1){
+	level = 5;
+}
+    gl_TessLevelOuter[0] = level;
+    gl_TessLevelOuter[1] = level;
+    gl_TessLevelOuter[2] = level;
+    gl_TessLevelOuter[3] = level;
+    gl_TessLevelInner[0] = level;
+    gl_TessLevelInner[1] = level;
+    
+    
+ TexCoordOut[gl_InvocationID] = TexCoord[gl_InvocationID];
+}

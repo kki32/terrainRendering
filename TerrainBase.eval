@@ -1,0 +1,53 @@
+#version 400
+
+layout(quads, equal_spacing, ccw) in;
+
+vec4 posn;
+uniform sampler2D wHeightMap;
+in vec2 TexCoordOut[];  //Must use the name in control shader
+out vec2 TexCoordGin;
+
+void main()
+{
+
+	float u = gl_TessCoord.x;
+	float v = gl_TessCoord.y;
+	posn = (1-u)* (1-v) * gl_in[0].gl_Position
+	+ u * (1-v) * gl_in[1].gl_Position
+	+ u * v * gl_in[2].gl_Position
+	+ (1-u) * v * gl_in[3].gl_Position;
+
+	//TexCoordGin = vec2(u,v);
+
+	
+	vec2 texCoordG[4] = vec2[4](vec2(0,0),
+	vec2(1,0),
+	vec2(1,1),
+	vec2(0,1));
+
+	TexCoordGin = (1-u)* (1-v) * texCoordG[0]
+	+ u * (1-v) * texCoordG[1]
+	+ u * v * texCoordG[2]
+	+ (1-u) * v * texCoordG[3];
+	
+		
+		
+	vec2 texCoord = (1-u)* (1-v) * TexCoordOut[0]
+	+ u * (1-v) * TexCoordOut[1]
+	+ u * v * TexCoordOut[2]
+	+ (1-u) * v * TexCoordOut[3];
+
+
+
+	int factor = 8;
+	posn.y = texture(wHeightMap, texCoord).r * factor;
+
+
+	if(posn.y < factor/4){
+		posn.y = (factor/4) - 0.10;
+	} 
+
+	gl_Position = posn;
+
+
+}
